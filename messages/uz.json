@@ -68,7 +68,17 @@
   "registerError": "Ro'yxatdan o'tishda xatolik yuz berdi. Iltimos, qayta urining.",
   "haveAccount": "Akkount bormi? Kirish",
   "resetSuccess": "Sizning emailingizga parolni tiklash havolasini yubordik.",
-  "resetError": "Parolni tiklashda xatolik yuz berdi. Iltimos, qayta urining."
+  "resetError": "Parolni tiklashda xatolik yuz berdi. Iltimos, qayta urining.",
+   "confirmEmail": "Emailingizni tasdiqlang",
+      "emailConfirmed": "Email tasdiqlandi!",
+      "checkEmailForConfirmation": "Email manzilingizga tasdiqlash havolasini yubordik. Iltimos, kiruvchi xabarlarni tekshiring va hisobingizni faollashtirish uchun havolani bosing.",
+      "checkSpamFolder": "Agar ko'rmasangiz, spam papkasini tekshiring.",
+      "resendConfirmationEmail": "Tasdiqlash xatini qayta yuborish",
+      "emailResent": "Tasdiqlash xati qayta yuborildi. Iltimos, pochtangizni tekshiring.",
+      "emailConfirmError": "Emailni tasdiqlashda xatolik yuz berdi. Iltimos, qayta urinib ko'ring.",
+      "emailResendError": "Tasdiqlash xatini qayta yuborishda xatolik. Iltimos, qayta urinib ko'ring.",
+      "redirectingToDashboard": "Muvaffaqiyatli! Boshqaruv paneliga yo'naltirilmoqda...",
+      "backToLogin": "Kirish sahifasiga qaytish"
   },
   "Dashboard": {
     "menuHome": "Bosh sahifa",

@@ -35,12 +35,19 @@ export default function RegisterPage() {
       password,
       options: {
         data: { username },
-        emailRedirectTo: `${window.location.origin}/${locale}/dashboard`
+        emailRedirectTo: `${window.location.origin}/${locale}/auth/confirm`
       }
     });
     setLoading(false);
-    if (error) setError(t('registerError'));
-    else router.replace(`/auth/confirm`);
+    
+    if (error) {
+      setError(t('registerError'));
+    } else {
+      // Store email for the confirmation page to use when resending confirmation
+      localStorage.setItem('pendingConfirmationEmail', email);
+      // Redirect to confirmation page instead of dashboard
+      router.replace(`/${locale}/auth/confirm`);
+    }
   };
 
   return (
@@ -82,4 +89,4 @@ export default function RegisterPage() {
       </form>
     </div>
   );
-} 
+}

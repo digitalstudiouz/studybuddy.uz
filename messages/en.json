@@ -68,7 +68,17 @@
   "registerError": "Registration failed. Please try again.",
   "haveAccount": "Already have an account? Login",
   "resetSuccess": "We sent a letter to your email",
-  "resetError": "Failed to reset password. Please try again."
+  "resetError": "Failed to reset password. Please try again.",
+  "confirmEmail": "Confirm Your Email",
+    "emailConfirmed": "Email Confirmed!",
+    "checkEmailForConfirmation": "We've sent a confirmation link to your email address. Please check your inbox and click the link to activate your account.",
+    "checkSpamFolder": "If you don't see it, check your spam folder.",
+    "resendConfirmationEmail": "Resend Confirmation Email",
+    "emailResent": "Confirmation email resent. Please check your inbox.",
+    "emailConfirmError": "Error confirming email. Please try again.",
+    "emailResendError": "Error resending confirmation email. Please try again.",
+    "redirectingToDashboard": "Success! Redirecting to dashboard...",
+    "backToLogin": "Back to login"
   },
   "Dashboard": {
     "menuHome": "Home",

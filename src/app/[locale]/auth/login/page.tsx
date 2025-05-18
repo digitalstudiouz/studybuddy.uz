@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import '@/app/[locale]/globals.css';
-import { Input } from '@/components/ui/input'; 
+import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, Loader2, Mail, LogIn } from 'lucide-react';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -34,9 +34,11 @@ export default function LoginPage() {
     const { data: { user } } = await supabase.auth.getUser();
     setLoading(false);
     if (!user?.email_confirmed_at) {
-      router.replace(`/auth/confirm`);
+      // Store email for the confirmation page to use when resending confirmation
+      localStorage.setItem('pendingConfirmationEmail', email);
+      router.replace(`/${locale}/auth/confirm`);
     } else {
-      router.replace(`/dashboard`);
+      router.replace(`/${locale}/dashboard`);
     }
   };
 
@@ -62,9 +64,9 @@ export default function LoginPage() {
         <Button type="submit" className="w-full" disabled={loading}>{loading ? <Loader2 className="animate-spin w-5 h-5" /> : <LogIn className="w-5 h-5 mr-2" />} {t('login')}</Button>
         <div className="flex justify-between text-sm mt-2">
           <a href={`/${locale}/auth/register`} className="text-white hover:underline">{t('noAccount')}</a>
-          {/* <a href={`/${locale}/auth/forgot-password`} className="text-white hover:underline">{t('forgotPassword')}</a> */}
+          <a href={`/${locale}/auth/forgot-password`} className="text-white hover:underline">{t('forgotPassword')}</a>
         </div>
       </form>
     </div>
   );
-} 
+}
