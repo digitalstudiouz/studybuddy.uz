@@ -17,7 +17,7 @@ export default function ConfirmPage() {
   
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(''); 
 
   // Handle email confirmation from Supabase email link
   
@@ -38,7 +38,7 @@ useEffect(() => {
         await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
         setVerified(true);
         setTimeout(() => {
-          router.push(`/${locale}/dashboard`);
+          router.push(`/dashboard`);
         }, 2000);
       } catch (err) {
         console.error('Error confirming email:', err);
