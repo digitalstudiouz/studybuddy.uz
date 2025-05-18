@@ -1,6 +1,5 @@
 "use client";
 import { useState } from 'react';
-import { useRouter } from '@/i18n/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { createClient } from '@supabase/supabase-js';
 import '@/app/[locale]/globals.css';
@@ -13,7 +12,6 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 export default function ForgotPasswordPage() {
   const t = useTranslations('Auth');
   const locale = useLocale();
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

@@ -6,15 +6,23 @@ import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import '@/app/[locale]/globals.css';
 
-
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+
+interface Flashcard {
+  id: string;
+  set_id: string;
+  question: string;
+  answer: string;
+  image_url?: string;
+  created_at: string;
+}
 
 export default function FlashcardSetPage() {
   const t = useTranslations("Flashcards");
   const params = useParams();
   const router = useRouter();
-  const setId = params.setId as string;
-  const [cards, setCards] = useState<any[]>([]);
+  const setId = params?.setId as string || '';
+  const [cards, setCards] = useState<Flashcard[]>([]);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAnswer, setShowAnswer] = useState(false);

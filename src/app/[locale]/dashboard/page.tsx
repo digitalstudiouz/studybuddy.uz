@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
-import { Home, ListTodo, Brain, BarChart, Timer, Music, Settings, Volume2, Image as ImageIcon, Maximize2, NotebookPen, LayoutGrid, HeartPulse, CalendarCheck, CalendarDays } from 'lucide-react';
+import { Home, ListTodo, Brain, Timer, Music, Settings, Volume2, Image as ImageIcon, Maximize2, CalendarCheck } from 'lucide-react';
 import Image from 'next/image';
 import '@/app/[locale]/globals.css';
 import { useRouter } from '@/i18n/navigation';
@@ -33,9 +33,19 @@ interface TaskType {
   user_id: string;
   title: string;
   priority: string;
-  due_date: string;
+  due_date: string | null;
   is_done: boolean;
   created_at: string;
+}
+
+interface NotificationType {
+  id: string;
+  user_id: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+  set_id?: string;
+  set_name?: string;
 }
 
 const soundOptions = [
@@ -89,19 +99,29 @@ export default function DashboardPage() {
   const [background, setBackground] = useState<any>(null);
   const [showMusicModal, setShowMusicModal] = useState(false);
   const [musicPlayer, setMusicPlayer] = useState<{ service: 'spotify' | 'yandex'; uri: string } | null>(null);
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Auth check
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
+    const checkAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.replace('/auth/login');
+        } else {
+          setUserId(user.id);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Auth error:", error);
         router.replace('/auth/login');
-      } else {
-        setLoading(false);
       }
-    });
+    };
+    
+    checkAuth();
   }, [router]);
 
   // Update clock every second
@@ -113,78 +133,175 @@ export default function DashboardPage() {
 
   // Fetch today's tasks
   useEffect(() => {
-    if (loading) return;
+    if (loading || !userId) return;
+    
     const fetchTasks = async () => {
       setLoadingTasks(true);
-      const today = new Date().toISOString().slice(0, 10);
-      const { data } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .eq('due_date', today)
-        .order('created_at', { ascending: true });
-      setTasks(data || []);
-      setLoadingTasks(false);
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        
+        // Fetch tasks that are due today OR have no due date (to include tasks from tasks page)
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('user_id', userId)
+          .or(`due_date.eq.${today},due_date.is.null`)
+          .eq('is_done', false)
+          .order('priority', { ascending: false })
+          .order('created_at', { ascending: true });
+          
+        if (error) throw error;
+        
+        console.log('Fetched tasks:', data);
+        setTasks(data || []);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      } finally {
+        setLoadingTasks(false);
+      }
     };
+    
     fetchTasks();
-  }, [loading]);
+    
+    // Set up real-time subscription for task changes
+    const tasksSubscription = supabase
+      .channel('tasks-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'tasks',
+          filter: `user_id=eq.${userId}`
+        }, 
+        (payload) => {
+          console.log('Task change received:', payload);
+          // Refresh tasks on any change
+          fetchTasks();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(tasksSubscription);
+    };
+  }, [loading, userId]);
 
   // Fetch unread notifications
   useEffect(() => {
-    async function fetchNotifications() {
+    if (loading || !userId) return;
+    
+    const fetchNotifications = async () => {
       setLoadingNotifications(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoadingNotifications(false); return; }
-      const { data } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("read", false)
-        .order("created_at", { ascending: false });
-      setNotifications(data || []);
-      setLoadingNotifications(false);
-    }
+      try {
+        const { data, error } = await supabase
+          .from("notifications")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("read", false)
+          .order("created_at", { ascending: false });
+          
+        if (error) throw error;
+        
+        setNotifications(data || []);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    };
+    
     fetchNotifications();
-  }, []);
+    
+    // Set up real-time subscription for notifications
+    const notificationsSubscription = supabase
+      .channel('notifications-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`
+        }, 
+        () => {
+          fetchNotifications();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(notificationsSubscription);
+    };
+  }, [loading, userId]);
 
   // Close modal on outside click or Esc
   useEffect(() => {
     if (!showSoundModal) return;
+    
     const handleClick = (e: MouseEvent) => {
       if (soundModalRef.current && !soundModalRef.current.contains(e.target as Node)) {
         setShowSoundModal(false);
       }
     };
+    
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setShowSoundModal(false);
     };
+    
     document.addEventListener('mousedown', handleClick);
     document.addEventListener('keydown', handleEsc);
+    
     return () => {
       document.removeEventListener('mousedown', handleClick);
       document.removeEventListener('keydown', handleEsc);
     };
   }, [showSoundModal]);
 
-  // Fullscreen toggle
-  const handleFullscreen = () => {
-    if (!isFullscreen) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
+  // Fullscreen toggle with error handling
+  const handleFullscreen = async () => {
+    try {
+      if (!isFullscreen) {
+        await document.documentElement.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (error) {
+      console.error("Fullscreen error:", error);
     }
   };
+
+  // Check fullscreen change from browser controls
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   const playSound = (src: string, name: string) => {
     if (currentSound) {
       currentSound.stop();
     }
-    const sound = new Howl({ src: [src], loop: true, volume: 0.7 });
-    sound.play();
-    setCurrentSound(sound);
-    setCurrentSoundName(name);
+    
+    try {
+      const sound = new Howl({ 
+        src: [src], 
+        loop: true, 
+        volume: 0.7,
+        onloaderror: (id, err) => console.error("Sound loading error:", err)
+      });
+      
+      sound.play();
+      setCurrentSound(sound);
+      setCurrentSoundName(name);
+    } catch (error) {
+      console.error("Error playing sound:", error);
+    }
   };
 
   const stopSound = () => {
@@ -195,25 +312,59 @@ export default function DashboardPage() {
     }
   };
 
+  // Load saved background
   useEffect(() => {
-    const saved = localStorage.getItem('dashboard-bg');
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem('dashboard-bg');
+      if (saved) {
         if (saved.trim().startsWith('{')) {
           setBackground(JSON.parse(saved));
         } else {
           setBackground({ src: saved, type: 'image' });
         }
-      } catch {
-        setBackground(null);
       }
+    } catch (error) {
+      console.error("Error loading background:", error);
+      setBackground(null);
     }
   }, []);
 
   const handleSelectBg = (bg: any) => {
     setBackground(bg);
-    localStorage.setItem('dashboard-bg', JSON.stringify(bg));
+    try {
+      localStorage.setItem('dashboard-bg', JSON.stringify(bg));
+    } catch (error) {
+      console.error("Error saving background:", error);
+    }
     setShowBgModal(false);
+  };
+
+  const markTaskDone = async (taskId: string) => {
+    try {
+      await supabase
+        .from('tasks')
+        .update({ is_done: true })
+        .eq('id', taskId);
+      
+      // Remove from local state for immediate UI update
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+    } catch (error) {
+      console.error("Error marking task done:", error);
+    }
+  };
+
+  const markNotificationRead = async (notificationId: string) => {
+    try {
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+      
+      // Remove from local state for immediate UI update
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    } catch (error) {
+      console.error("Error marking notification read:", error);
+    }
   };
 
   if (loading) {
@@ -223,6 +374,22 @@ export default function DashboardPage() {
   // Format time
   const timeStr = time.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const dateStr = time.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric' });
+
+  // Priority tasks to display (up to 5)
+  const priorityTasks = tasks
+    .filter(task => !task.is_done)
+    .sort((a, b) => {
+      // Sort by priority first (high > medium > low)
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+      const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+      
+      if (priorityA !== priorityB) return priorityB - priorityA;
+      
+      // Then by creation date
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    })
+    .slice(0, 5); // Limit to 5 tasks for display
 
   return (
     <div className="relative min-h-screen bg-black text-white flex flex-col items-center justify-center">
@@ -264,7 +431,7 @@ export default function DashboardPage() {
                 <div 
                   key={n.id} 
                   className="bg-white/10 hover:bg-white/15 transition-colors rounded-lg p-2 text-sm font-medium flex items-center justify-between group cursor-pointer min-h-[56px]"
-                  onClick={() => router.push(`/dashboard/flashcards/${n.set_id}`)}
+                  onClick={() => n.set_id && router.push(`/dashboard/flashcards/${n.set_id}`)}
                 >
                   <div className="flex-1">
                     <div className="text-white/90">{n.message}</div>
@@ -276,13 +443,7 @@ export default function DashboardPage() {
                     className="opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-white"
                     onClick={(e) => {
                       e.stopPropagation();
-                      supabase
-                        .from('notifications')
-                        .update({ read: true })
-                        .eq('id', n.id)
-                        .then(() => {
-                          setNotifications(prev => prev.filter(notification => notification.id !== n.id));
-                        });
+                      markNotificationRead(n.id);
                     }}
                   >
                     Done
@@ -291,45 +452,52 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
+          
           {/* Tasks */}
-          {tasks.filter(task => ['high', 'medium'].includes(task.priority)).map(task => (
-            <div 
-              key={task.id} 
-              className="bg-white/10 hover:bg-white/15 transition-colors rounded-lg p-2 text-sm font-medium flex items-center justify-between group min-h-[56px]"
-            >
-              <div className="flex items-center gap-2 flex-1">
-                <ListTodo className="w-4 h-4 text-gray-300" />
-                <span className={task.is_done ? 'line-through text-gray-500' : 'text-white/90'}>{task.title}</span>
-                <span
-                  className={
-                    'ml-2 px-2 py-0.5 rounded text-xs font-semibold ' +
-                    (task.priority === 'high'
-                      ? 'bg-red-500/80 text-white'
-                      : 'bg-yellow-400/80 text-black')
-                  }
+          {priorityTasks.length > 0 && (
+            <div className="space-y-2">
+              {priorityTasks.map(task => (
+                <div 
+                  key={task.id} 
+                  className="bg-white/10 hover:bg-white/15 transition-colors rounded-lg p-2 text-sm font-medium flex items-center justify-between group min-h-[56px]"
                 >
-                  {task.priority === 'high' ? 'High' : 'Medium'}
-                </span>
-              </div>
-              <button 
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-white"
-                onClick={() => {
-                  supabase
-                    .from('tasks')
-                    .delete()
-                    .eq('id', task.id)
-                    .then(() => {
-                      setTasks(prev => prev.filter(t => t.id !== task.id));
-                    });
-                }}
-              >
-                Done
-              </button>
+                  <div className="flex items-center gap-2 flex-1">
+                    <ListTodo className="w-4 h-4 text-gray-300" />
+                    <span className={task.is_done ? 'line-through text-gray-500' : 'text-white/90'}>{task.title}</span>
+                    <span
+                      className={
+                        'ml-2 px-2 py-0.5 rounded text-xs font-semibold ' +
+                        (task.priority === 'high'
+                          ? 'bg-red-500/80 text-white'
+                          : task.priority === 'medium'
+                            ? 'bg-yellow-400/80 text-black'
+                            : 'bg-blue-400/80 text-black')
+                      }
+                    >
+                      {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Medium' : 'Low'}
+                    </span>
+                  </div>
+                  <button 
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-white"
+                    onClick={() => markTaskDone(task.id)}
+                  >
+                    Done
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
+          
           {/* Only show 'no tasks' if both are loaded and both are empty */}
-          {(!loadingTasks && !loadingNotifications && tasks.filter(task => ['high', 'medium'].includes(task.priority)).length === 0 && notifications.length === 0) && (
+          {(!loadingTasks && !loadingNotifications && priorityTasks.length === 0 && notifications.length === 0) && (
             <div className="text-gray-400 text-sm">{t('noTasks')}</div>
+          )}
+          
+          {/* Loading indicator */}
+          {(loadingTasks || loadingNotifications) && (
+            <div className="flex justify-center py-2">
+              <div className="animate-pulse w-6 h-6 bg-white/20 rounded-full"></div>
+            </div>
           )}
         </div>
       </div>

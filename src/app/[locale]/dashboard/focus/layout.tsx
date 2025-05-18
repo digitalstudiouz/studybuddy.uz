@@ -2,24 +2,26 @@
 
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { Home, ListTodo, Brain, BarChart, Timer, Music, Settings, Volume2, Image as ImageIcon, Maximize2, NotebookPen, LayoutGrid, HeartPulse, CalendarCheck, CalendarDays } from 'lucide-react';
-import { useRouter } from '@/i18n/navigation';
-import { useState, useRef, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { Home, ListTodo, Brain, Timer, Music, Settings, Volume2, Image as ImageIcon, Maximize2, CalendarCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { BackgroundModal } from '@/components/BackgroundModal';
 import { MusicModal } from '@/components/MusicModal';
 import { SoundModal } from '@/components/SoundModal';
+
+interface Background {
+  name: string;
+  src: string;
+  animated: boolean;
+  plus: boolean;
+  type: string;
+}
 
 const menuItems = [
   { icon: <Home />, label: 'menuHome', href: '/dashboard' },
   { icon: <Timer />, label: 'menuFocus', href: '/dashboard/focus' },
   { icon: <ListTodo />, label: 'menuTasks', href: '/dashboard/tasks' },
-  // { icon: <CalendarDays />, label: 'menuHabits', href: '/dashboard/habits' },
-  // { icon: <NotebookPen />, label: 'menuNotepad', href: '/notepad' },
-  // { icon: <LayoutGrid />, label: 'menuEisenhower', href: '/eisenhower' },
   { icon: <Brain />, label: 'menuFlashcards', href: '/dashboard/flashcards' },
-  // { icon: <BarChart />, label: 'menuStats', href: '/statistics' },
-  // { icon: <HeartPulse />, label: 'menuRelax', href: '/relax' },
   { icon: <CalendarCheck />, label: 'menuPlanner', href: '/dashboard/planner' },
 ];
 
@@ -30,12 +32,11 @@ export default function FocusLayout({
 }) {
   const t = useTranslations('Dashboard');
   const locale = useLocale();
-  const router = useRouter();
   const [showBgModal, setShowBgModal] = useState(false);
   const [showMusicModal, setShowMusicModal] = useState(false);
   const [showSoundModal, setShowSoundModal] = useState(false);
   const [musicPlayer, setMusicPlayer] = useState<{ service: 'spotify' | 'yandex', uri: string } | null>(null);
-  const [background, setBackground] = useState<any>(null);
+  const [background, setBackground] = useState<Background | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('focus-bg');
@@ -44,7 +45,13 @@ export default function FocusLayout({
         if (saved.trim().startsWith('{')) {
           setBackground(JSON.parse(saved));
         } else {
-          setBackground({ src: saved, type: 'image' });
+          setBackground({ 
+            name: 'Custom Background',
+            src: saved,
+            type: 'image',
+            animated: false,
+            plus: false
+          });
         }
       } catch {
         setBackground(null);
@@ -52,7 +59,7 @@ export default function FocusLayout({
     }
   }, []);
 
-  const handleSelectBg = (bg: any) => {
+  const handleSelectBg = (bg: Background) => {
     setBackground(bg);
     localStorage.setItem('focus-bg', JSON.stringify(bg));
     setShowBgModal(false);
@@ -89,11 +96,11 @@ export default function FocusLayout({
 
       {/* Top right: settings, music, sound, bg, fullscreen */}
       <div className="fixed top-6 right-6 flex flex-row gap-2 z-40">
-        <Button  className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('settings')}><Settings className="w-5 h-5" /></Button>
-        <Button  className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('musicConnect')} onClick={() => setShowMusicModal(true)}><Music className="w-5 h-5" /></Button>
-        <Button  className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('sound')} onClick={() => setShowSoundModal(true)}><Volume2 className="w-5 h-5" /></Button>
-        <Button  className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('background')} onClick={() => setShowBgModal(true)}><ImageIcon className="w-5 h-5" /></Button>
-        <Button  className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('fullscreen')} onClick={handleFullscreen}><Maximize2 className="w-5 h-5" /></Button>
+        <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('settings')}><Settings className="w-5 h-5" /></Button>
+        <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('musicConnect')} onClick={() => setShowMusicModal(true)}><Music className="w-5 h-5" /></Button>
+        <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('sound')} onClick={() => setShowSoundModal(true)}><Volume2 className="w-5 h-5" /></Button>
+        <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('background')} onClick={() => setShowBgModal(true)}><ImageIcon className="w-5 h-5" /></Button>
+        <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('fullscreen')} onClick={handleFullscreen}><Maximize2 className="w-5 h-5" /></Button>
       </div>
 
       {/* macOS-style menu bar */}

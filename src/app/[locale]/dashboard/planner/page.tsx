@@ -8,15 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Loader2, Calendar as CalendarIcon, Edit2, Copy, Save, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
 import '@/app/[locale]/globals.css';
-import { useLocale } from 'next-intl';
-import Image from 'next/image';
-import { Home, Timer, ListTodo, HeartPulse, NotebookPen, LayoutGrid, Brain, BarChart, CalendarCheck, CalendarDays } from 'lucide-react';
+import { Home, Timer, ListTodo, Brain, CalendarCheck } from 'lucide-react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-
+import Image from "next/image";
 
 // Custom dark theme overrides for FullCalendar
 import { css } from '@emotion/css';
@@ -117,6 +115,7 @@ interface StudyPlanItem {
 
 interface StudyPlanRecord {
   id: string;
+  user_id: string;
   name: string;
   subject: string | null;
   deadline: string | null;
@@ -132,17 +131,13 @@ const menuItems = [
   { icon: <Home />, label: 'menuHome', href: '/dashboard' },
   { icon: <Timer />, label: 'menuFocus', href: '/dashboard/focus' },
   { icon: <ListTodo />, label: 'menuTasks', href: '/dashboard/tasks' },
-  // { icon: <CalendarDays />, label: 'menuHabits', href: '/dashboard/habits' },
-  // { icon: <NotebookPen />, label: 'menuNotepad', href: '/notepad' },
-  // { icon: <LayoutGrid />, label: 'menuEisenhower', href: '/eisenhower' },
   { icon: <Brain />, label: 'menuFlashcards', href: '/dashboard/flashcards' },
-  // { icon: <BarChart />, label: 'menuStats', href: '/statistics' },
-  // { icon: <HeartPulse />, label: 'menuRelax', href: '/relax' },
   { icon: <CalendarCheck />, label: 'menuPlanner', href: '/dashboard/planner' },
 ];
 
 export default function PlannerPage() {
   const t = useTranslations("planner");
+  const locale = useLocale();
   const [topics, setTopics] = useState<StudyTopic[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [plans, setPlans] = useState<StudyPlanRecord[]>([]);
@@ -151,12 +146,9 @@ export default function PlannerPage() {
   const [planItems, setPlanItems] = useState<StudyPlanItem[] | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editPlanItems, setEditPlanItems] = useState<StudyPlanItem[] | null>(null);
-  const locale = useLocale();
   const [showFormModal, setShowFormModal] = useState(false);
-  const calendarRef = useRef<any>(null);
+  const calendarRef = useRef<FullCalendar>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [completedPlansCount, setCompletedPlansCount] = useState(0);
-
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -186,20 +178,6 @@ export default function PlannerPage() {
     if (typeof window !== "undefined" && "Notification" in window) {
       Notification.requestPermission();
     }
-  }, []);
-
-  useEffect(() => {
-    const fetchCompletedPlansCount = async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) return;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('completed_plans_count')
-        .eq('id', user.id)
-        .single();
-      if (!error && data) setCompletedPlansCount(data.completed_plans_count || 0);
-    };
-    fetchCompletedPlansCount();
   }, []);
 
   const addNewTopic = () => {
@@ -333,7 +311,6 @@ export default function PlannerPage() {
 
   // Summary card data
   const totalPlans = plans.length;
-    const completedPlans = plans.filter(p => p.progress_hours && p.recommended_hours && p.progress_hours >= p.recommended_hours).length;
   const totalHours = plans.reduce((sum, p) => sum + (p.recommended_hours || 0), 0);
   const upcomingDeadlines = plans.filter(p => p.deadline && new Date(p.deadline) > new Date()).length;
 
@@ -358,184 +335,182 @@ export default function PlannerPage() {
     }));
 
   return (
-    <div className="relative min-h-screen bg-black text-white flex flex-col items-center justify-center">
-      {/* Logo top left */}
-      <div className="absolute top-6 left-6 flex items-center gap-2 z-20">
-        <Image src="/logo.png" alt="Logo" width={40} height={40} className="rounded-full" />
-        <span className="font-bold text-lg hidden md:block">Study Buddy</span>
-      </div>
-      {/* macOS-style menu bar */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-6 bg-white/5 rounded-2xl px-12 py-2 shadow-2xl backdrop-blur-md border border-white/10 min-w-[600px] max-w-[90vw] h-16 items-center justify-center z-30">
-        {menuItems.map(item => (
-          <a key={item.href} href={`/${locale}${item.href}`} className="relative group flex items-center justify-center">
-            <span className="p-2 rounded-full group-hover:bg-white/10 transition-colors">{item.icon}</span>
-            <span className="absolute bottom-12 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/90 text-white text-xs rounded shadow opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-              {t(item.label)}
+    <div className="min-h-screen bg-[#0A0A0A] text-white">
+      <div className="container mx-auto px-4 py-8">
+        {/* Logo top left */}
+        <div className="absolute top-6 left-6 flex items-center gap-2 z-20">
+          <Image src="/logo.png" alt="Logo" width={40} height={40} className="rounded-full" />
+          <span className="font-bold text-lg hidden md:block">Study Buddy</span>
+        </div>
+        {/* macOS-style menu bar */}
+        <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-6 bg-white/5 rounded-2xl px-12 py-2 shadow-2xl backdrop-blur-md border border-white/10 min-w-[600px] max-w-[90vw] h-16 items-center justify-center z-30">
+          {menuItems.map(item => (
+            <a key={item.href} href={`/${locale}${item.href}`} className="relative group flex items-center justify-center">
+              <span className="p-2 rounded-full group-hover:bg-white/10 transition-colors">{item.icon}</span>
+              <span className="absolute bottom-12 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/90 text-white text-xs rounded shadow opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                {t(item.label)}
+              </span>
+            </a>
+          ))}
+        </nav>
+        {/* Summary Cards */}
+        <div className="w-full max-w-6xl flex flex-row justify-between items-center mt-24 mb-8 z-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
+            <div className="bg-[#23232a] rounded-xl p-6 flex flex-col items-center shadow-lg">
+              <span className="text-3xl font-bold text-purple-400">{totalPlans}</span>
+              <span className="mt-2 text-sm text-gray-300">{t('totalPlans')}</span>
+            </div>
+            <div className="bg-[#23232a] rounded-xl p-6 flex flex-col items-center shadow-lg">
+              <span className="text-3xl font-bold text-blue-400">{totalHours}</span>
+              <span className="mt-2 text-sm text-gray-300">{t('totalHours')}</span>
+            </div>
+            <div className="bg-[#23232a] rounded-xl p-6 flex flex-col items-center shadow-lg">
+              <span className="text-3xl font-bold text-yellow-400">{upcomingDeadlines}</span>
+              <span className="mt-2 text-sm text-gray-300">{t('upcomingDeadlines')}</span>
+            </div>
+          </div>
+          <Button className="ml-6 h-14 px-8 text-lg bg-gradient-to-r from-[#3a3a4d] to-[#23232a] text-white border-none shadow-lg fixed top-8 right-8 z-40" onClick={() => setShowFormModal(true)}>
+            + {t('createPlan') || 'Create Plan'}
+          </Button>
+        </div>
+        {/* Calendar Section - FullCalendar version */}
+        <div className={`w-full max-w-6xl h-[600px] bg-[#18181b] rounded-2xl shadow-xl p-0 mb-8 overflow-y-auto border border-[#23232a] ${darkCalendarStyles}`}>
+          {/* Custom minimalistic month navigation */}
+          <div className="flex items-center justify-between px-6 pt-6 pb-2">
+            <button
+              className="rounded-full bg-[#23232a] hover:bg-[#282832] p-2 transition flex items-center justify-center shadow border border-[#23232a]"
+              aria-label="Previous Month"
+              onClick={() => {
+                if (calendarRef.current) {
+                  calendarRef.current.getApi().prev();
+                  setCurrentDate(calendarRef.current.getApi().getDate());
+                }
+              }}
+            >
+              <ChevronLeft className="w-5 h-5 text-white" />
+            </button>
+            <span className="text-lg font-semibold text-white select-none" style={{letterSpacing: '-0.5px'}}>
+              {format(currentDate, 'MMMM yyyy')}
             </span>
-          </a>
-        ))}
-      </nav>
-      {/* Summary Cards */}
-      <div className="w-full max-w-6xl flex flex-row justify-between items-center mt-24 mb-8 z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
-          <div className="bg-[#23232a] rounded-xl p-6 flex flex-col items-center shadow-lg">
-            <span className="text-3xl font-bold text-purple-400">{totalPlans}</span>
-            <span className="mt-2 text-sm text-gray-300">{t('totalPlans')}</span>
+            <button
+              className="rounded-full bg-[#23232a] hover:bg-[#282832] p-2 transition flex items-center justify-center shadow border border-[#23232a]"
+              aria-label="Next Month"
+              onClick={() => {
+                if (calendarRef.current) {
+                  calendarRef.current.getApi().next();
+                  setCurrentDate(calendarRef.current.getApi().getDate());
+                }
+              }}
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
           </div>
-          <div className="bg-[#23232a] rounded-xl p-6 flex flex-col items-center shadow-lg">
-            <span className="text-3xl font-bold text-blue-400">{totalHours}</span>
-            <span className="mt-2 text-sm text-gray-300">{t('totalHours')}</span>
-          </div>
-          <div className="bg-[#23232a] rounded-xl p-6 flex flex-col items-center shadow-lg">
-            <span className="text-3xl font-bold text-yellow-400">{upcomingDeadlines}</span>
-            <span className="mt-2 text-sm text-gray-300">{t('upcomingDeadlines')}</span>
+          <div className="w-full h-full">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin]}
+              initialView="dayGridMonth"
+              height={600}
+              contentHeight={600}
+              events={calendarEvents}
+              eventClick={(info) => {
+                setSelectedPlan(info.event.extendedProps.plan);
+                setShowModal(true);
+              }}
+              headerToolbar={false}
+              dayMaxEventRows={2}
+              fixedWeekCount={false}
+              displayEventTime={false}
+              datesSet={arg => setCurrentDate(arg.start)}
+            />
           </div>
         </div>
-        <Button className="ml-6 h-14 px-8 text-lg bg-gradient-to-r from-[#3a3a4d] to-[#23232a] text-white border-none shadow-lg fixed top-8 right-8 z-40" onClick={() => setShowFormModal(true)}>
-          + {t('createPlan') || 'Create Plan'}
-        </Button>
-      </div>
-      {/* Calendar Section - FullCalendar version */}
-      <div className={`w-full max-w-6xl h-[600px] bg-[#18181b] rounded-2xl shadow-xl p-0 mb-8 overflow-y-auto border border-[#23232a] ${darkCalendarStyles}`}>
-        {/* Custom minimalistic month navigation */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-2">
-          <button
-            className="rounded-full bg-[#23232a] hover:bg-[#282832] p-2 transition flex items-center justify-center shadow border border-[#23232a]"
-            aria-label="Previous Month"
-            onClick={() => {
-              if (calendarRef.current) {
-                calendarRef.current.getApi().prev();
-                setCurrentDate(calendarRef.current.getApi().getDate());
-              }
-            }}
-          >
-            <ChevronLeft className="w-5 h-5 text-white" />
-          </button>
-          <span className="text-lg font-semibold text-white select-none" style={{letterSpacing: '-0.5px'}}>
-            {format(currentDate, 'MMMM yyyy')}
-          </span>
-          <button
-            className="rounded-full bg-[#23232a] hover:bg-[#282832] p-2 transition flex items-center justify-center shadow border border-[#23232a]"
-            aria-label="Next Month"
-            onClick={() => {
-              if (calendarRef.current) {
-                calendarRef.current.getApi().next();
-                setCurrentDate(calendarRef.current.getApi().getDate());
-              }
-            }}
-          >
-            <ChevronRight className="w-5 h-5 text-white" />
-          </button>
-        </div>
-        <div className="w-full h-full">
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin]}
-            initialView="dayGridMonth"
-            height={600}
-            contentHeight={600}
-            events={calendarEvents}
-            eventClick={(info) => {
-              setSelectedPlan(info.event.extendedProps.plan);
-              setShowModal(true);
-            }}
-            headerToolbar={false}
-            dayMaxEventRows={2}
-            fixedWeekCount={false}
-            displayEventTime={false}
-            datesSet={arg => setCurrentDate(arg.start)}
-          />
-        </div>
-      </div>
-      {/* Create Plan Modal - only topic/goal/start/end/daily time, blocks for topics */}
-      {showFormModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-[#18181b] text-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto relative p-8">
-            <button className="absolute right-4 top-4 text-2xl text-gray-400 hover:text-white" onClick={() => setShowFormModal(false)} aria-label="Close">×</button>
-            <h2 className="text-xl font-bold mb-4">{t('createPlan') || 'Create Plan'}</h2>
-            {topics.map((topic) => (
-              <Card key={topic.id} className="p-4 bg-[#23232a] border border-[#353545] mb-2 shadow-md">
-                <div className="space-y-4">
-                  <Input placeholder={t('topicPlaceholder') || 'Введите тему или предмет (например, Математика, IELTS Speaking)'} value={topic.title} onChange={e => updateTopic(topic.id, 'title', e.target.value)} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
-                  <Textarea placeholder={t('goalPlaceholder') || 'Введите вашу цель (например, подготовка к экзамену, повторение всех тем)'} value={topic.goal} onChange={e => updateTopic(topic.id, 'goal', e.target.value)} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium mb-1 block text-gray-300">{t('startDate') || 'Дата Начала'}</label>
-                      <Input type="date" value={format(topic.startDate, 'yyyy-MM-dd')} onChange={e => updateTopic(topic.id, 'startDate', new Date(e.target.value))} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
+        {/* Create Plan Modal - only topic/goal/start/end/daily time, blocks for topics */}
+        {showFormModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+            <div className="bg-[#18181b] text-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto relative p-8">
+              <button className="absolute right-4 top-4 text-2xl text-gray-400 hover:text-white" onClick={() => setShowFormModal(false)} aria-label="Close">×</button>
+              <h2 className="text-xl font-bold mb-4">{t('createPlan') || 'Create Plan'}</h2>
+              {topics.map((topic) => (
+                <Card key={topic.id} className="p-4 bg-[#23232a] border border-[#353545] mb-2 shadow-md">
+                  <div className="space-y-4">
+                    <Input placeholder={t('topicPlaceholder') || 'Введите тему или предмет (например, Математика, IELTS Speaking)'} value={topic.title} onChange={e => updateTopic(topic.id, 'title', e.target.value)} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
+                    <Textarea placeholder={t('goalPlaceholder') || 'Введите вашу цель (например, подготовка к экзамену, повторение всех тем)'} value={topic.goal} onChange={e => updateTopic(topic.id, 'goal', e.target.value)} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium mb-1 block text-gray-300">{t('startDate') || 'Дата Начала'}</label>
+                        <Input type="date" value={format(topic.startDate, 'yyyy-MM-dd')} onChange={e => updateTopic(topic.id, 'startDate', new Date(e.target.value))} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block text-gray-300">{t('endDate') || 'Дата Окончания'}</label>
+                        <Input type="date" value={format(topic.endDate, 'yyyy-MM-dd')} onChange={e => updateTopic(topic.id, 'endDate', new Date(e.target.value))} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
+                      </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium mb-1 block text-gray-300">{t('endDate') || 'Дата Окончания'}</label>
-                      <Input type="date" value={format(topic.endDate, 'yyyy-MM-dd')} onChange={e => updateTopic(topic.id, 'endDate', new Date(e.target.value))} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
+                      <label className="text-sm font-medium mb-1 block text-gray-300">{t('dailyTime') || 'Ежедневное Время Учёбы (минуты)'}</label>
+                      <Input type="number" min="1" value={topic.dailyTimeMinutes} onChange={e => updateTopic(topic.id, 'dailyTimeMinutes', parseInt(e.target.value) || 0)} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
                     </div>
+                    {topics.length > 1 && (
+                      <Button variant="destructive" onClick={() => removeTopic(topic.id)} className="rounded-lg border border-[#444]">{t('removeTopic') || 'Удалить Тему'}</Button>
+                    )}
                   </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1 block text-gray-300">{t('dailyTime') || 'Ежедневное Время Учёбы (минуты)'}</label>
-                    <Input type="number" min="1" value={topic.dailyTimeMinutes} onChange={e => updateTopic(topic.id, 'dailyTimeMinutes', parseInt(e.target.value) || 0)} className="bg-[#23232a] border border-[#444] focus:border-blue-500 text-white rounded-lg px-4 py-2 transition-all" />
-                  </div>
-                  {topics.length > 1 && (
-                    <Button variant="destructive" onClick={() => removeTopic(topic.id)} className="rounded-lg border border-[#444]">{t('removeTopic') || 'Удалить Тему'}</Button>
-                  )}
-                </div>
-              </Card>
-            ))}
-            <Button onClick={addNewTopic} className="w-full bg-[#23232a] text-white border border-[#444] rounded-lg mb-2"><Plus className="mr-2 h-4 w-4" />{t('addTopic') || 'Добавить Тему'}</Button>
-            <Button onClick={async () => { await generatePlan(); setShowFormModal(false); }} disabled={isGenerating || topics.length === 0} className="w-full bg-gradient-to-r from-[#3a3a4d] to-[#23232a] text-white border-none rounded-lg mt-2 text-lg py-3 shadow-md">
-              {isGenerating ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('generating') || 'Генерация...'}</>) : (<><CalendarIcon className="mr-2 h-4 w-4" />{t('generatePlan') || 'Создать План Учёбы'}</>)}
-            </Button>
-          </div>
-        </div>
-      )}
-      {/* Plan Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-[#18181b] text-white rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto relative p-6">
-            <button className="absolute right-4 top-4 text-2xl text-gray-400 hover:text-white" onClick={() => { setShowModal(false); setIsEditing(false); }} aria-label="Close">×</button>
-            <h2 className="text-xl font-bold mb-4">{selectedPlan?.name || 'Plan'}</h2>
-            <div className="flex gap-2 mb-4">
-              <Button size="sm" variant="outline" className="bg-[#23232a] text-white border-none" onClick={handleCopyPlan}><Copy className="w-4 h-4 mr-1" />{t('copy') || 'Copy'}</Button>
-              {!isEditing && <Button size="sm" variant="outline" className="bg-[#23232a] text-white border-none" onClick={handleEditPlan}><Edit2 className="w-4 h-4 mr-1" />{t('edit') || 'Edit'}</Button>}
-              {isEditing && <Button size="sm" variant="outline" className="bg-[#23232a] text-white border-none" onClick={handleSaveEdit}><Save className="w-4 h-4 mr-1" />{t('save') || 'Save'}</Button>}
-              {isEditing && <Button size="sm" variant="outline" className="bg-[#23232a] text-white border-none" onClick={() => { setIsEditing(false); setEditPlanItems(planItems); }}><X className="w-4 h-4 mr-1" />{t('cancel') || 'Cancel'}</Button>}
-                            {/* Done button */}
-              {!isEditing && selectedPlan && (
-                <Button size="sm" variant="outline" className="bg-green-600 text-white border-none" onClick={async () => {
-                  const { data: { user }, error: userError } = await supabase.auth.getUser();
-                  if (userError || !user) return;
-                  const { error: deleteError } = await supabase.from('study_plan').delete().eq('id', selectedPlan.id).eq('user_id', user.id);
-                  if (!deleteError) {
-                    setPlans(plans.filter(p => p.id !== selectedPlan.id));
-                    setShowModal(false);
-                    // Increment completed_plans_count in DB and state
-                    await supabase.rpc('increment_completed_plans_count', { user_id: user.id });
-                    setCompletedPlansCount(prev => prev + 1);
-                    toast.success(t('planCompleted') || 'План выполнен и удалён!');
-                  }
-                }}>
-                  ✓ {t('done') || 'Выполнено'}
-                </Button>
-              )}
-
-            </div>
-            <div className="space-y-2">
-              {isEditing && editPlanItems && Array.isArray(editPlanItems) ? editPlanItems.map((item, idx) => (
-                <div key={idx} className="p-3 bg-[#23232a] rounded-lg flex flex-col gap-2">
-                  <Input value={item.date} onChange={e => setEditPlanItems(editPlanItems.map((it, i) => i === idx ? { ...it, date: e.target.value } : it))} className="bg-[#23232a] border-none text-white" />
-                  <Input value={item.topic} onChange={e => setEditPlanItems(editPlanItems.map((it, i) => i === idx ? { ...it, topic: e.target.value } : it))} className="bg-[#23232a] border-none text-white" />
-                  <Textarea value={item.task} onChange={e => setEditPlanItems(editPlanItems.map((it, i) => i === idx ? { ...it, task: e.target.value } : it))} className="bg-[#23232a] border-none text-white" />
-                  <Input value={item.duration} onChange={e => setEditPlanItems(editPlanItems.map((it, i) => i === idx ? { ...it, duration: e.target.value } : it))} className="bg-[#23232a] border-none text-white" />
-                </div>
-              )) : planItems && Array.isArray(planItems) ? planItems.map((item, idx) => (
-                <div key={idx} className="p-3 bg-[#23232a] rounded-lg">
-                  <p className="font-medium">{item.date}</p>
-                  <p className="text-sm text-gray-400">{item.topic}</p>
-                  <p>{item.task}</p>
-                  <p className="text-sm text-gray-400">{t('duration') || 'Duration'}: {item.duration}</p>
-                </div>
-              )) : <p className="text-gray-400">No plan data.</p>}
+                </Card>
+              ))}
+              <Button onClick={addNewTopic} className="w-full bg-[#23232a] text-white border border-[#444] rounded-lg mb-2"><Plus className="mr-2 h-4 w-4" />{t('addTopic') || 'Добавить Тему'}</Button>
+              <Button onClick={async () => { await generatePlan(); setShowFormModal(false); }} disabled={isGenerating || topics.length === 0} className="w-full bg-gradient-to-r from-[#3a3a4d] to-[#23232a] text-white border-none rounded-lg mt-2 text-lg py-3 shadow-md">
+                {isGenerating ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('generating') || 'Генерация...'}</>) : (<><CalendarIcon className="mr-2 h-4 w-4" />{t('generatePlan') || 'Создать План Учёбы'}</>)}
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+        {/* Plan Modal */}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-[#18181b] text-white rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto relative p-6">
+              <button className="absolute right-4 top-4 text-2xl text-gray-400 hover:text-white" onClick={() => { setShowModal(false); setIsEditing(false); }} aria-label="Close">×</button>
+              <h2 className="text-xl font-bold mb-4">{selectedPlan?.name || 'Plan'}</h2>
+              <div className="flex gap-2 mb-4">
+                <Button size="sm" variant="outline" className="bg-[#23232a] text-white border-none" onClick={handleCopyPlan}><Copy className="w-4 h-4 mr-1" />{t('copy') || 'Copy'}</Button>
+                {!isEditing && <Button size="sm" variant="outline" className="bg-[#23232a] text-white border-none" onClick={handleEditPlan}><Edit2 className="w-4 h-4 mr-1" />{t('edit') || 'Edit'}</Button>}
+                {isEditing && <Button size="sm" variant="outline" className="bg-[#23232a] text-white border-none" onClick={handleSaveEdit}><Save className="w-4 h-4 mr-1" />{t('save') || 'Save'}</Button>}
+                {isEditing && <Button size="sm" variant="outline" className="bg-[#23232a] text-white border-none" onClick={() => { setIsEditing(false); setEditPlanItems(planItems); }}><X className="w-4 h-4 mr-1" />{t('cancel') || 'Cancel'}</Button>}
+                {!isEditing && selectedPlan && (
+                  <Button size="sm" variant="outline" className="bg-green-600 text-white border-none" onClick={async () => {
+                    const { data: { user }, error: userError } = await supabase.auth.getUser();
+                    if (userError || !user) return;
+                    const { error: deleteError } = await supabase.from('study_plan').delete().eq('id', selectedPlan.id).eq('user_id', user.id);
+                    if (!deleteError) {
+                      setPlans(plans.filter(p => p.id !== selectedPlan.id));
+                      setShowModal(false);
+                      await supabase.rpc('increment_completed_plans_count', { user_id: user.id });
+                      toast.success(t('planCompleted') || 'План выполнен и удалён!');
+                    }
+                  }}>
+                    ✓ {t('done') || 'Выполнено'}
+                  </Button>
+                )}
+              </div>
+              <div className="space-y-2">
+                {isEditing && editPlanItems && Array.isArray(editPlanItems) ? editPlanItems.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-[#23232a] rounded-lg flex flex-col gap-2">
+                    <Input value={item.date} onChange={e => setEditPlanItems(editPlanItems.map((it, i) => i === idx ? { ...it, date: e.target.value } : it))} className="bg-[#23232a] border-none text-white" />
+                    <Input value={item.topic} onChange={e => setEditPlanItems(editPlanItems.map((it, i) => i === idx ? { ...it, topic: e.target.value } : it))} className="bg-[#23232a] border-none text-white" />
+                    <Textarea value={item.task} onChange={e => setEditPlanItems(editPlanItems.map((it, i) => i === idx ? { ...it, task: e.target.value } : it))} className="bg-[#23232a] border-none text-white" />
+                    <Input value={item.duration} onChange={e => setEditPlanItems(editPlanItems.map((it, i) => i === idx ? { ...it, duration: e.target.value } : it))} className="bg-[#23232a] border-none text-white" />
+                  </div>
+                )) : planItems && Array.isArray(planItems) ? planItems.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-[#23232a] rounded-lg">
+                    <p className="font-medium">{item.date}</p>
+                    <p className="text-sm text-gray-400">{item.topic}</p>
+                    <p>{item.task}</p>
+                    <p className="text-sm text-gray-400">{t('duration') || 'Duration'}: {item.duration}</p>
+                  </div>
+                )) : <p className="text-gray-400">No plan data.</p>}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 } 

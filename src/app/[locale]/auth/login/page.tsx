@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import '@/app/[locale]/globals.css';
 import { Input } from '@/components/ui/input'; 
-import { Eye, EyeOff, Loader2, Mail, Lock, LogIn } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, LogIn } from 'lucide-react';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 

@@ -1,7 +1,7 @@
 import { Flashcards } from '@/components/Flashcards';
 import '@/app/[locale]/globals.css';
 import { useTranslations, useLocale } from 'next-intl';
-import { Home, Timer, ListTodo, HeartPulse, NotebookPen, LayoutGrid, Brain, BarChart, CalendarCheck, CalendarDays } from 'lucide-react';
+import { Home, Timer, ListTodo, Brain, CalendarCheck } from 'lucide-react';
 import React from 'react';
 
 const menuItems = [

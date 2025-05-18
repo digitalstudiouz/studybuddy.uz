@@ -5,14 +5,14 @@ import { motion, useAnimation } from 'framer-motion';
 import Image from 'next/image';
 import { Globe } from 'lucide-react';
 import '@/app/[locale]/globals.css';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 
-const navLinks = [
-  { href: '/about', label: 'about' },
-  { href: '/download', label: 'download' },
-  { href: '/premium', label: 'premium' },
-  { href: '/contacts', label: 'contacts' },
-];
+// const navLinks = [
+//   { href: '/about', label: 'about' },
+//   { href: '/download', label: 'download' },
+//   { href: '/premium', label: 'premium' },
+//   { href: '/contacts', label: 'contacts' },
+// ];
 
 const locales = [
   { code: 'en', label: 'EN' },
@@ -72,8 +72,7 @@ export default function HomePage() {
       {/* Animated Stars */}
       <div className="absolute inset-0 z-10 pointer-events-none">
         {[...Array(80)].map((_, i) => {
-          // UseMemo to keep star properties stable across renders
-          const starProps = useMemo(() => {
+          const getStarProps = () => {
             const size = Math.random() * 2 + 1;
             const left = `${Math.random() * 100}%`;
             const top = `${Math.random() * 100}%`;
@@ -84,7 +83,8 @@ export default function HomePage() {
             const pulseDuration = 18 + Math.random() * 12; // 18-30s
             const delay = Math.random() * 10;
             return { size, left, top, baseOpacity, moveY, moveX, moveDuration, pulseDuration, delay };
-          }, [i]);
+          };
+          const starProps = getStarProps();
           return (
             <motion.div
               key={i}

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from '@/i18n/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { createClient, User as SupabaseUser } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { Settings, LogOut, Timer, User } from 'lucide-react';
@@ -14,7 +14,6 @@ type Section = 'general' | 'pomodoro' | 'profile';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const pathname = usePathname();
   const [section, setSection] = useState<Section>('general');
   const [language, setLanguage] = useState('ru');
   const [work, setWork] = useState(25);
