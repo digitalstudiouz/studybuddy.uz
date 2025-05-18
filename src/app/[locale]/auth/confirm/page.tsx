@@ -13,16 +13,18 @@ export default function ConfirmPage() {
   const locale = useLocale();
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const [email, setEmail] = useState('');
+
 
   const handleResend = async () => {
     setError('');
     setSent(false);
-    const { data, error } = await supabase.auth.resend({ type: 'signup' });
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
     if (error) setError(t('resendError'));
     else setSent(true);
   };
-
   return (
+    
     <div className="min-h-screen flex items-center justify-center bg-black">
       <div className="bg-white/5 p-8 rounded-xl shadow-xl w-full max-w-md flex flex-col gap-6 items-center">
         <h1 className="text-2xl font-bold text-center text-white mb-2">{t('confirmTitle')}</h1>
