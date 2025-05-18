@@ -11,7 +11,7 @@ import { Check, Loader2, Mail } from 'lucide-react';
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
 export default function ConfirmPage() {
-  const t = useTranslations('Auth');
+  const t = useTranslations('Auth'); 
   const locale = useLocale();
   const router = useRouter();
   
@@ -20,44 +20,37 @@ export default function ConfirmPage() {
   const [error, setError] = useState('');
 
   // Handle email confirmation from Supabase email link
-  useEffect(() => {
-    const confirmEmail = async () => {
-      // Only run on client side
-      if (typeof window === 'undefined') return;
-      
-      // Get URL parameters for email confirmation
-      const urlParams = new URLSearchParams(window.location.search);
-      const accessToken = urlParams.get('access_token');
-      const refreshToken = urlParams.get('refresh_token');
-      const type = urlParams.get('type');
+  
+useEffect(() => {
+  const confirmEmail = async () => {
+    if (typeof window === 'undefined') return;
 
-      // If we have an access token and it's for email confirmation
-      if ((accessToken || refreshToken) && type === 'email_confirmation') {
-        setVerifying(true);
-        try {
-          // Set the session using the token
-          if (accessToken) {
-            await supabase.auth.setSession({ access_token: accessToken, refresh_token: '' });
-          } else if (refreshToken) {
-            await supabase.auth.setSession({ access_token: '', refresh_token: refreshToken });
-          }
-          
-          setVerified(true);
-          // Redirect to dashboard after a short delay
-          setTimeout(() => {
-            router.push(`/dashboard`);
-          }, 2000);
-        } catch (err) {
-          console.error('Error confirming email:', err);
-          setError(t('emailConfirmError'));
-        } finally {
-          setVerifying(false);
-        }
+    const hash = window.location.hash.substring(1); // отрезаем '#'
+    const urlParams = new URLSearchParams(hash);
+
+    const accessToken = urlParams.get('access_token') || '';
+    const refreshToken = urlParams.get('refresh_token') || '';
+    const type = urlParams.get('type');
+
+    if ((accessToken || refreshToken) && (type === 'email_confirmation' || type === 'signup')) {
+      setVerifying(true);
+      try {
+        await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+        setVerified(true);
+        setTimeout(() => {
+          router.push(`/${locale}/dashboard`);
+        }, 2000);
+      } catch (err) {
+        console.error('Error confirming email:', err);
+        setError(t('emailConfirmError'));
+      } finally {
+        setVerifying(false);
       }
-    };
+    }
+  };
+  confirmEmail();
+}, [router, locale, t]);
 
-    confirmEmail();
-  }, [router, locale, t]);
 
   // Resend confirmation email
   const handleResendConfirmation = async () => {
