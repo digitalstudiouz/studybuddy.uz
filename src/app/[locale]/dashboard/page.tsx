@@ -505,7 +505,7 @@ export default function DashboardPage() {
       {/* Bottom left: settings, music */}
       <div className="absolute bottom-6 left-6 flex flex-row gap-2">
         <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('settings')} onClick={() => router.push(`/dashboard/settings`)}><Settings className="w-5 h-5" /></Button>
-        <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('musicConnect')} onClick={() => setShowMusicModal(true)}><Music className="w-5 h-5" /></Button>
+        {/* <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('musicConnect')} onClick={() => setShowMusicModal(true)}><Music className="w-5 h-5" /></Button> */}
       </div>
 
       {/* Bottom right: sound, bg, fullscreen (horizontal) */}

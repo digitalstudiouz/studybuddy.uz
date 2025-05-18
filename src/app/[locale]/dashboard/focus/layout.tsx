@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Home, ListTodo, Brain, Timer, Music, Settings, Volume2, Image as ImageIcon, Maximize2, CalendarCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { useRouter } from '@/i18n/navigation';
 import { BackgroundModal } from '@/components/BackgroundModal';
 import { MusicModal } from '@/components/MusicModal';
 import { SoundModal } from '@/components/SoundModal';
+
 
 interface Background {
   name: string;
@@ -32,6 +34,7 @@ export default function FocusLayout({
 }) {
   const t = useTranslations('Dashboard');
   const locale = useLocale();
+  const router = useRouter();
   const [showBgModal, setShowBgModal] = useState(false);
   const [showMusicModal, setShowMusicModal] = useState(false);
   const [showSoundModal, setShowSoundModal] = useState(false);
@@ -96,8 +99,8 @@ export default function FocusLayout({
 
       {/* Top right: settings, music, sound, bg, fullscreen */}
       <div className="fixed top-6 right-6 flex flex-row gap-2 z-40">
-        <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('settings')}><Settings className="w-5 h-5" /></Button>
-        <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('musicConnect')} onClick={() => setShowMusicModal(true)}><Music className="w-5 h-5" /></Button>
+        <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('settings')} onClick={() => router.push(`/dashboard/settings`)}><Settings className="w-5 h-5" /></Button>
+        {/* <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('musicConnect')} onClick={() => setShowMusicModal(true)}><Music className="w-5 h-5" /></Button> */}
         <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('sound')} onClick={() => setShowSoundModal(true)}><Volume2 className="w-5 h-5" /></Button>
         <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('background')} onClick={() => setShowBgModal(true)}><ImageIcon className="w-5 h-5" /></Button>
         <Button className="rounded-full bg-white/10 backdrop-blur border border-white/20 shadow-lg p-3 hover:bg-white/20 transition" aria-label={t('fullscreen')} onClick={handleFullscreen}><Maximize2 className="w-5 h-5" /></Button>
