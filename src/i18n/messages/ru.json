@@ -1,0 +1,32 @@
+{
+  "Tasks": {
+    "dailyTasks": "Ежедневные задачи",
+    "taskTitle": "Название задачи",
+    "selectPriority": "Выберите приоритет",
+    "priorityLow": "Низкий",
+    "priorityMedium": "Средний",
+    "priorityHigh": "Высокий",
+    "selectDate": "Выберите дату",
+    "addTask": "Добавить задачу",
+    "sortBy": "Сортировать по",
+    "sortByPriority": "Приоритету",
+    "sortByDate": "Дате",
+    "editTask": "Редактировать задачу",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "confirmDelete": "Вы уверены, что хотите удалить эту задачу?",
+    "taskAdded": "Задача успешно добавлена",
+    "taskUpdated": "Задача успешно обновлена",
+    "taskDeleted": "Задача успешно удалена",
+    "errorFetching": "Ошибка при загрузке задач",
+    "errorAdding": "Ошибка при добавлении задачи",
+    "errorUpdating": "Ошибка при обновлении задачи",
+    "errorDeleting": "Ошибка при удалении задачи"
+  },
+  "planner": {
+    "totalPlans": "Всего планов",
+    "completedPlans": "Завершено планов",
+    "totalHours": "Всего часов",
+    "upcomingDeadlines": "Ближайшие дедлайны"
+  }
+} 

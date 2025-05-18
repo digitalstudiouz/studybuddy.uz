@@ -1,0 +1,32 @@
+{
+  "Tasks": {
+    "dailyTasks": "Kunlik vazifalar",
+    "taskTitle": "Vazifa nomi",
+    "selectPriority": "Ustuvorlikni tanlang",
+    "priorityLow": "Past",
+    "priorityMedium": "O'rta",
+    "priorityHigh": "Yuqori",
+    "selectDate": "Sanani tanlang",
+    "addTask": "Vazifa qo'shish",
+    "sortBy": "Saralash",
+    "sortByPriority": "Ustuvorlik bo'yicha",
+    "sortByDate": "Sana bo'yicha",
+    "editTask": "Vazifani tahrirlash",
+    "cancel": "Bekor qilish",
+    "save": "Saqlash",
+    "confirmDelete": "Bu vazifani o'chirishni xohlaysizmi?",
+    "taskAdded": "Vazifa muvaffaqiyatli qo'shildi",
+    "taskUpdated": "Vazifa muvaffaqiyatli yangilandi",
+    "taskDeleted": "Vazifa muvaffaqiyatli o'chirildi",
+    "errorFetching": "Vazifalarni yuklashda xatolik",
+    "errorAdding": "Vazifa qo'shishda xatolik",
+    "errorUpdating": "Vazifani yangilashda xatolik",
+    "errorDeleting": "Vazifani o'chirishda xatolik"
+  },
+  "planner": {
+    "totalPlans": "Jami rejalari",
+    "completedPlans": "Bajarilgan rejalari",
+    "totalHours": "Jami soatlar",
+    "upcomingDeadlines": "Yaqin muddatlar"
+  }
+} 

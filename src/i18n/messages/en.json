@@ -1,0 +1,32 @@
+{
+  "Tasks": {
+    "dailyTasks": "Daily Tasks",
+    "taskTitle": "Task Title",
+    "selectPriority": "Select Priority",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "selectDate": "Select Date",
+    "addTask": "Add Task",
+    "sortBy": "Sort By",
+    "sortByPriority": "Priority",
+    "sortByDate": "Date",
+    "editTask": "Edit Task",
+    "cancel": "Cancel",
+    "save": "Save",
+    "confirmDelete": "Are you sure you want to delete this task?",
+    "taskAdded": "Task added successfully",
+    "taskUpdated": "Task updated successfully",
+    "taskDeleted": "Task deleted successfully",
+    "errorFetching": "Error fetching tasks",
+    "errorAdding": "Error adding task",
+    "errorUpdating": "Error updating task",
+    "errorDeleting": "Error deleting task"
+  },
+  "planner": {
+    "totalPlans": "Total Plans",
+    "completedPlans": "Completed Plans",
+    "totalHours": "Total Hours",
+    "upcomingDeadlines": "Upcoming Deadlines"
+  }
+} 
