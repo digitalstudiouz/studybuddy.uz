@@ -13,13 +13,6 @@ const backgrounds = [
     type: 'image',
   },
   {
-    name: 'Snowy Winter Cabin',
-    src: '/backgrounds/snowy-cabin.mp4',
-    animated: true,
-    plus: false,
-    type: 'video',
-  },
-  {
     name: 'Countryside',
     src: '/backgrounds/countryside.jpg',
     animated: false,
@@ -62,13 +55,6 @@ const backgrounds = [
     type: 'video',
   },
   {
-    name: 'Tropical landscape',
-    src: '/backgrounds/tropic.jpg',
-    animated: false,
-    plus: true,
-    type: 'image',
-  },
-  {
     name: 'Cafe',
     src: '/backgrounds/cafe.mp4',
     animated: true,
@@ -88,21 +74,7 @@ const backgrounds = [
     animated: true,
     plus: true,
     type: 'video',
-  },
-  {
-    name: 'Space',
-    src: '/backgrounds/space.jpg',
-    animated: false,
-    plus: true,
-    type: 'image',
-  },
-  {
-    name: 'Fall Rain',
-    src: '/backgrounds/fall-rain.mp4',
-    animated: true,
-    plus: true,
-    type: 'video',
-  },
+  }
 ];
 
 interface BackgroundModalProps {

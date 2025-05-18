@@ -62,7 +62,7 @@ export default function LoginPage() {
         <Button type="submit" className="w-full" disabled={loading}>{loading ? <Loader2 className="animate-spin w-5 h-5" /> : <LogIn className="w-5 h-5 mr-2" />} {t('login')}</Button>
         <div className="flex justify-between text-sm mt-2">
           <a href={`/${locale}/auth/register`} className="text-white hover:underline">{t('noAccount')}</a>
-          <a href={`/${locale}/auth/forgot-password`} className="text-white hover:underline">{t('forgotPassword')}</a>
+          {/* <a href={`/${locale}/auth/forgot-password`} className="text-white hover:underline">{t('forgotPassword')}</a> */}
         </div>
       </form>
     </div>
