@@ -36,9 +36,9 @@ export default function LoginPage() {
     if (!user?.email_confirmed_at) {
       // Store email for the confirmation page to use when resending confirmation
       localStorage.setItem('pendingConfirmationEmail', email);
-      router.replace(`/${locale}/auth/confirm`);
+      router.push(`/auth/confirm`);
     } else {
-      router.replace(`/${locale}/dashboard`);
+      router.push(`/dashboard`);
     }
   };
 

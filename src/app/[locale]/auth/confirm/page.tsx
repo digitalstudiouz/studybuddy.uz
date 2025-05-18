@@ -45,7 +45,7 @@ export default function ConfirmPage() {
           setVerified(true);
           // Redirect to dashboard after a short delay
           setTimeout(() => {
-            router.push(`/${locale}/dashboard`);
+            router.push(`/dashboard`);
           }, 2000);
         } catch (err) {
           console.error('Error confirming email:', err);
@@ -68,7 +68,7 @@ export default function ConfirmPage() {
         type: 'signup',
         email: localStorage.getItem('pendingConfirmationEmail') || '',
         options: {
-          emailRedirectTo: `${window.location.origin}/${locale}/auth/confirm`
+          emailRedirectTo: `${window.location.origin}/auth/confirm`
         }
       });
       
@@ -126,7 +126,7 @@ export default function ConfirmPage() {
         )}
         
         <div className="text-sm mt-4">
-          <a href={`/${locale}/auth/login`} className="text-white hover:underline">
+          <a href={`/auth/login`} className="text-white hover:underline">
             {t('backToLogin')}
           </a>
         </div>

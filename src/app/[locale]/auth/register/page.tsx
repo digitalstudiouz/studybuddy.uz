@@ -35,7 +35,7 @@ export default function RegisterPage() {
       password,
       options: {
         data: { username },
-        emailRedirectTo: `${window.location.origin}/${locale}/auth/confirm`
+        emailRedirectTo: `${window.location.origin}/auth/confirm`
       }
     });
     setLoading(false);
@@ -46,7 +46,7 @@ export default function RegisterPage() {
       // Store email for the confirmation page to use when resending confirmation
       localStorage.setItem('pendingConfirmationEmail', email);
       // Redirect to confirmation page instead of dashboard
-      router.replace(`/${locale}/auth/confirm`);
+      router.push(`/auth/confirm`);
     }
   };
 
