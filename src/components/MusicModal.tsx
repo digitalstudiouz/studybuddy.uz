@@ -24,7 +24,7 @@ const SPOTIFY_SCOPES = 'user-read-private user-read-email playlist-read-private 
 
 export function MusicModal({ isOpen, onClose, onPlay }: MusicModalProps) {
   const locale = useLocale();
-  const SPOTIFY_REDIRECT_URI = `http://172.35.14.195:3000/${locale}/dashboard`;
+  const SPOTIFY_REDIRECT_URI = `https://studybuddy-uz.vercel.app/${locale}/dashboard`;
   const [showSpotify, setShowSpotify] = useState(false);
   const [showYandex, setShowYandex] = useState(false);
   const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
