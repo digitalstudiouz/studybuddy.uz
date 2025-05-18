@@ -40,7 +40,7 @@ export default function RegisterPage() {
     });
     setLoading(false);
     if (error) setError(t('registerError'));
-    else router.replace(`/auth/confirm`);
+    else router.replace(`/dashboard`);
   };
 
   return (
